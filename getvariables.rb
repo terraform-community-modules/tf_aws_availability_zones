@@ -18,18 +18,23 @@ tertiary_azs = {}
 data = profiles.map do |account|
   regions = JSON.parse(`aws ec2 describe-regions --profile #{account} --region us-east-1`)['Regions'].map { |d| d['RegionName'] }
   regions.map do |region|
-    JSON.parse(`aws ec2 describe-availability-zones --profile #{account} --region #{region}`)['AvailabilityZones'].map { |tuple| tuple[:account] = account; tuple }
+    JSON.parse(`aws ec2 describe-availability-zones --profile #{account} --region #{region}`)['AvailabilityZones'].map do |tuple|
+      tuple[:name] = "#{account}-#{tuple['RegionName']}"
+      tuple[:sortkey] = "#{account}-#{tuple['ZoneName']}"
+      tuple
+    end
   end.flatten
-end.flatten.reject { |tuple| tuple['State'] != 'available' }
+end.flatten.reject { |tuple| tuple['State'] != 'available' }.sort do |a,b|
+  a[:sortkey] <=> b[:sortkey] 
+end
 
 data.each do |tuple|
-  name = "#{tuple[:account]}-#{tuple['RegionName']}"
-  if !primary_azs[name]
-    primary_azs[name] = tuple['ZoneName']
-  elsif !secondary_azs[name]
-    secondary_azs[name] = tuple['ZoneName']
-  elsif !tertiary_azs[name]
-    tertiary_azs[name] = tuple['ZoneName']
+  if !primary_azs[tuple[:name]]
+    primary_azs[tuple[:name]] = tuple['ZoneName']
+  elsif !secondary_azs[tuple[:name]]
+    secondary_azs[tuple[:name]] = tuple['ZoneName']
+  elsif !tertiary_azs[tuple[:name]]
+    tertiary_azs[tuple[:name]] = tuple['ZoneName']
   end
 end
 
