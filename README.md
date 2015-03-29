@@ -1,7 +1,12 @@
 terraform-azs
 =============
 
-Terraform module to get the AZs you have access to
+Terraform module to get the AZs you have access to.
+
+Reads a set of accounts from ~/.aws/credentials and queries
+each region to find the AZs you can use in that region
+
+Needs the aws cli installed to shell out to
 
 Input variables:
 

@@ -1,4 +1,5 @@
 variables.tf.json
+variables.tf.json.new
 terraform.tfstate
 terraform.tfstate.backup
 
