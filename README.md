@@ -22,7 +22,7 @@ Outputs:
 Example use:
 
     module "az" {
-      source = "github.com/bobtfish/terraform-as"
+      source = "github.com/bobtfish/terraform-azs"
       region = "eu-central-1"
       account = "dev"
     }
