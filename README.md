@@ -22,8 +22,7 @@ Also needs you to run 'make' in the directory after _terraform get_ to build the
   * secondary - The secondary AZ (always defined)
   * tertiary - The third AZ (may not be defined!)
   * list_all - A comma seperated list of all AZs
-  * list_three - A comma seperated list of three AZs. If only 2 AZs are available then the primary is reused for the third.
-  * list_five - A comma seperated list of five AZs. If there are 3 AZs available, this will be 2 in the primary, 2 in the secondary and 1 in the tertiary. If only 2 are available then it'll be 3 in the primary and 2 in the secondary.
+  * count - The number of AZs in this account/region
 
 ## Example:
 
