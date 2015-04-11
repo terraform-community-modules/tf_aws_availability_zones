@@ -13,6 +13,6 @@ output "tertiary" {
 output "list_all" {
     value = "${lookup(var.az_lists, format(\"%s-%s\", var.account, var.region))}"
 }
-output "count" {
+output "ax_count" {
     value = "${lookup(var.az_counts, format(\"%s-%s\", var.account, var.region))}"
 }
