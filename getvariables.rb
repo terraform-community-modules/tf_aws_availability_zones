@@ -37,7 +37,7 @@ data.each do |tuple|
   az_lists[tuple[:name]] ||= []
   az_lists[tuple[:name]].push tuple['ZoneName']
   az_letters[tuple[:name]] ||= []
-  az_letters[tuple[:name]].push tuple['ZoneName'][-1]
+  az_letters[tuple[:name]].push tuple['ZoneName'][-1,1]
   if !primary_azs[tuple[:name]]
     primary_azs[tuple[:name]] = tuple['ZoneName']
   elsif !secondary_azs[tuple[:name]]
@@ -47,7 +47,9 @@ data.each do |tuple|
   end
 end
 
-az_lists.each_key { |k| az_lists[k] = az_lists[k].join ',' }
+[az_lists, az_letters].each do |squash|
+  squash.each_key { |k| squash[k] = squash[k].join ',' }
+end
 
 output = {
  "variable" => {
