@@ -11,7 +11,7 @@ output "tertiary" {
     value = "${lookup(var.tertiary_azs, format(\"%s-%s\", var.account, var.region))}"
 }
 output "list_all" {
-    value = "${lookup(var.az_lists, format(\"%s-%s\", var.account, var.region))}"
+    value = "${lookup(var.list_all, format(\"%s-%s\", var.account, var.region))}"
 }
 output "az_count" {
     value = "${lookup(var.az_counts, format(\"%s-%s\", var.account, var.region))}"

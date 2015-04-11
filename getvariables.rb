@@ -60,8 +60,11 @@ output = {
     'tertiary_azs' => {
         "default" => tertiary_azs
     },
-    'az_lists' => {
+    'list_all' => {
         'default' => az_lists
+    },
+    'list_letters' => {
+        'default' => az_letters
     },
     'az_counts' => {
         'default' => az_counts
