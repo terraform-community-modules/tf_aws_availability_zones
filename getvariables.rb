@@ -16,6 +16,7 @@ secondary_azs = {}
 tertiary_azs = {}
 az_counts = {}
 az_lists = {}
+az_letters = {}
 
 data = profiles.map do |account|
   regions = JSON.parse(`aws ec2 describe-regions --profile #{account} --region us-east-1`)['Regions'].map { |d| d['RegionName'] }
@@ -35,6 +36,8 @@ data.each do |tuple|
   az_counts[tuple[:name]] = az_counts[tuple[:name]]+1
   az_lists[tuple[:name]] ||= []
   az_lists[tuple[:name]].push tuple['ZoneName']
+  az_letters[tuple[:name]] ||= []
+  az_letters[tuple[:name]].push tuple['ZoneName'][-1]
   if !primary_azs[tuple[:name]]
     primary_azs[tuple[:name]] = tuple['ZoneName']
   elsif !secondary_azs[tuple[:name]]

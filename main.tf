@@ -16,3 +16,6 @@ output "list_all" {
 output "az_count" {
     value = "${lookup(var.az_counts, format(\"%s-%s\", var.account, var.region))}"
 }
+output "list_letters" {
+    value = "${lookup(var.list_letters, format(\"%s-%s\", var.account, var.region))}"
+}

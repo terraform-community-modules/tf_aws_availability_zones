@@ -22,6 +22,7 @@ Also needs you to run 'make' in the directory after _terraform get_ to build the
   * secondary - The secondary AZ (always defined)
   * tertiary - The third AZ (may not be defined!)
   * list_all - A comma seperated list of all AZs
+  * list_letters - A comma seperated list of the trailing letter of the AZ
   * az_count - The number of AZs in this account/region
 
 ## Example:
