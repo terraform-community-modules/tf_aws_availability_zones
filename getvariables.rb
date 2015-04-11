@@ -32,7 +32,7 @@ end
 
 data.each do |tuple|
   az_counts[tuple[:name]] ||= 0
-  az_counts[tuple[:name]]++
+  az_counts[tuple[:name]] = az_counts[tuple[:name]]+1
   az_lists[tuple[:name]] ||= []
   az_lists[tuple[:name]].push tuple['ZoneName']
   if !primary_azs[tuple[:name]]
