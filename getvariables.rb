@@ -50,6 +50,7 @@ end
 [az_lists, az_letters].each do |squash|
   squash.each_key { |k| squash[k] = squash[k].join ',' }
 end
+az_counts.each_key { |k| az_counts[k] = "#{az_counts[k]}" }
 
 output = {
  "variable" => {
