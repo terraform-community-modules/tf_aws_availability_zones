@@ -19,9 +19,19 @@ az_lists = {}
 az_letters = {}
 
 data = profiles.map do |account|
-  regions = JSON.parse(`aws ec2 describe-regions --profile #{account} --region us-east-1`)['Regions'].map { |d| d['RegionName'] }
+  regions_json = `aws ec2 describe-regions --profile #{account} --region us-east-1`
+  if $?.exitstatus != 0
+    print "Failed to run aws ec2 describe-regions --profile #{account} --region us-east-1"
+    exit 1
+  end
+  regions = JSON.parse(regions_json)['Regions'].map { |d| d['RegionName'] }
   regions.map do |region|
-    JSON.parse(`aws ec2 describe-availability-zones --profile #{account} --region #{region}`)['AvailabilityZones'].map do |tuple|
+    azs_json = `aws ec2 describe-availability-zones --profile #{account} --region #{region}`
+    if $?.exitstatus != 0
+      print "Failed to run aws ec2 describe-availability-zones --profile #{account} --region #{region}"
+      exit 1
+    end
+    JSON.parse(azs_json)['AvailabilityZones'].map do |tuple|
       tuple[:name] = "#{account}-#{tuple['RegionName']}"
       tuple[:sortkey] = "#{account}-#{tuple['ZoneName']}"
       tuple
