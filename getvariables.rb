@@ -1,6 +1,9 @@
 #!/usr/bin/ruby
 require 'json'
 
+ENV.delete('AWS_ACCESS_KEY_ID')
+ENV.delete('AWS_SECRET_ACCESS_KEY')
+
 profiles = []
 File.open(File.expand_path('~/.aws/credentials'), 'r') do |f|
   f.each_line do |l|
