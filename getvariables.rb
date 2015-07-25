@@ -22,16 +22,16 @@ az_lists = {}
 az_letters = {}
 
 data = profiles.map do |account|
-  regions_json = `aws ec2 describe-regions --profile #{account} --region us-east-1`
+  regions_json = `aws ec2 describe-regions --output json --profile #{account} --region us-east-1`
   if $?.exitstatus != 0
-    print "Failed to run aws ec2 describe-regions --profile #{account} --region us-east-1"
+    print "Failed to run aws ec2 describe-regions --output json --profile #{account} --region us-east-1"
     exit 1
   end
   regions = JSON.parse(regions_json)['Regions'].map { |d| d['RegionName'] }
   regions.map do |region|
-    azs_json = `aws ec2 describe-availability-zones --profile #{account} --region #{region}`
+    azs_json = `aws ec2 describe-availability-zones --output json --profile #{account} --region #{region}`
     if $?.exitstatus != 0
-      print "Failed to run aws ec2 describe-availability-zones --profile #{account} --region #{region}"
+      print "Failed to run aws ec2 describe-availability-zones --output json --profile #{account} --region #{region}"
       exit 1
     end
     JSON.parse(azs_json)['AvailabilityZones'].map do |tuple|
@@ -41,7 +41,7 @@ data = profiles.map do |account|
     end
   end.flatten
 end.flatten.reject { |tuple| tuple['State'] != 'available' }.sort do |a,b|
-  a[:sortkey] <=> b[:sortkey] 
+  a[:sortkey] <=> b[:sortkey]
 end
 
 data.each do |tuple|
@@ -90,4 +90,3 @@ output = {
 
 File.open('variables.tf.json.new', 'w') { |f| f.puts JSON.pretty_generate(output) }
 File.rename 'variables.tf.json.new', 'variables.tf.json'
-
