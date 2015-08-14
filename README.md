@@ -3,9 +3,9 @@
 Terraform module to get the AZs you have access to.
 
 Reads a set of accounts from ~/.aws/credentials and queries
-each region to find the AZs you can use in that region
+each region to find the AZs you can use in that region and that account.
 
-Needs the aws cli installed to shell out to.
+Needs the aws-sdk ruby client to generate the variables.tf.json file.
 
 Also needs you to run 'make' in the directory after _terraform get_ to build the lists.
 
