@@ -5,15 +5,21 @@ require 'aws-sdk'
 def get_aws_profiles
 # Read all the available profile.
 # For safety reasons 'default' profile will be skipped.
-  profiles = []
-  File.open(File.expand_path('~/.aws/credentials'), 'r') do |f|
-    f.each_line do |l|
-      next unless l.gsub!(/^\[\s*(\w+)\s*\].*/, '\1')
-      l.chomp!
-      next if l == 'default'
-      profiles.push(l)
+  begin
+    profiles = []
+    File.open(File.expand_path('~/.aws/credentials'), 'r') do |f|
+      f.each_line do |l|
+        next unless l.gsub!(/^\[\s*(\w+)\s*\].*/, '\1')
+        l.chomp!
+        next if l == 'default'
+        profiles.push(l)
+      end
     end
+  rescue StandardError => e
+    puts e.message
+    exit 1
   end
+
   profiles
 end
 
@@ -36,6 +42,7 @@ def get_AZs_by_profile account
     data.sort { |a,b| a[:sortkey] <=> b[:sortkey] }
   rescue StandardError => e
     puts e.message
+    exit 1
   end
 end
 
@@ -97,6 +104,7 @@ def build_variables_file data
     File.rename 'variables.tf.json.new', 'variables.tf.json'
   rescue StandardError => e
     puts e.message
+    exit 1
   end
 end
 
