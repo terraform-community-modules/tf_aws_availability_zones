@@ -2,10 +2,6 @@
 require 'json'
 require 'aws-sdk'
 
-# Clean AWS environment variables.
-ENV.delete('AWS_ACCESS_KEY_ID')
-ENV.delete('AWS_SECRET_ACCESS_KEY')
-
 def get_aws_profiles
 # Read all the available profile.
 # For safety reasons 'default' profile will be skipped.
