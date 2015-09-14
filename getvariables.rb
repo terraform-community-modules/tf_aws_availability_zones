@@ -1,17 +1,51 @@
 #!/usr/bin/ruby
 require 'json'
+require 'net/http'
+require 'optparse'
+
+options = {:iam_profile_name => nil, :aws_account => 'default' }
+optparse = OptionParser.new do |opts|
+  opts.banner = "Usage: getvariables.rb [options]"
+  opts.on('-i','--iam-profile-name iam_profile_name', 'IAM Profile Name') do |iam_profile_name|
+    options[:iam_profile_name] = iam_profile_name
+  end
+  opts.on('-a','--aws-account aws_account', 'AWS Account Name') do |aws_account|
+    options[:aws_account] = aws_account
+  end
+  opts.on('-h', '--help', 'Displays Help') do
+    puts opts
+    exit
+  end
+end
+
+optparse.parse!
 
 ENV.delete('AWS_ACCESS_KEY_ID')
 ENV.delete('AWS_SECRET_ACCESS_KEY')
 
-profiles = []
-File.open(File.expand_path('~/.aws/credentials'), 'r') do |f|
-  f.each_line do |l|
-    next unless l.gsub!(/^\[\s*(\w+)\s*\].*/, '\1')
-    l.chomp!
-    next if l == 'default'
-    profiles.push(l)
+def is_iam_instance?(profile_name)
+  return nil if profile_name.nil?
+  begin
+    iam_info = Net::HTTP.get('169.254.169.254','/latest/meta-data/iam/info')
+  rescue Exception => e
+    return nil
   end
+  return true if JSON.parse(iam_info)['InstanceProfileArn'].split(':')[5].split('/')[1] == profile_name
+  return nil
+end
+
+profiles = []
+unless is_iam_instance?(options[:iam_profile_name])
+  File.open(File.expand_path('~/.aws/credentials'), 'r') do |f|
+    f.each_line do |l|
+      next unless l.gsub!(/^\[\s*(\w+)\s*\].*/, '\1')
+      l.chomp!
+      next if l == 'default'
+      profiles.push(l)
+    end
+  end
+else
+  profiles = options[:aws_account].split(',')
 end
 
 primary_azs = {}
@@ -22,14 +56,17 @@ az_lists = {}
 az_letters = {}
 
 data = profiles.map do |account|
-  regions_json = `aws ec2 describe-regions --output json --profile #{account} --region us-east-1`
+  regions_json = `aws ec2 describe-regions --output json --profile #{account} --region us-east-1` unless is_iam_instance?(options[:iam_profile_name])
+  regions_json = `aws ec2 describe-regions --output json --region us-east-1` if is_iam_instance?(options[:iam_profile_name])
   if $?.exitstatus != 0
     print "Failed to run aws ec2 describe-regions --output json --profile #{account} --region us-east-1"
     exit 1
   end
   regions = JSON.parse(regions_json)['Regions'].map { |d| d['RegionName'] }
   regions.map do |region|
-    azs_json = `aws ec2 describe-availability-zones --output json --profile #{account} --region #{region}`
+    azs_json = `aws ec2 describe-availability-zones --output json --profile #{account} --region #{region}` unless is_iam_instance?(options[:iam_profile_name])
+    azs_json = `aws ec2 describe-availability-zones --output json --region #{region}` if is_iam_instance?(options[:iam_profile_name])
+
     if $?.exitstatus != 0
       print "Failed to run aws ec2 describe-availability-zones --output json --profile #{account} --region #{region}"
       exit 1
