@@ -40,7 +40,6 @@ unless is_iam_instance?(options[:iam_profile_name])
     f.each_line do |l|
       next unless l.gsub!(/^\[\s*(\w+)\s*\].*/, '\1')
       l.chomp!
-      next if l == 'default'
       profiles.push(l)
     end
   end
