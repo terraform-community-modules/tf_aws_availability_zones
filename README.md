@@ -30,7 +30,7 @@ Also needs you to run 'make' in the directory after _terraform get_ to build the
 In your terraform code, add something like this:
 
     module "az" {
-      source = "github.com/terraform-community-module/tf_aws_availability_zones"
+      source = "github.com/terraform-community-modules/tf_aws_availability_zones"
       region = "eu-central-1"
       account = "dev"
     }
