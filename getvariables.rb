@@ -4,6 +4,7 @@ require 'net/http'
 require 'optparse'
 
 options = {:iam_profile_name => nil, :aws_account => 'default' }
+
 optparse = OptionParser.new do |opts|
   opts.banner = "Usage: getvariables.rb [options]"
   opts.on('-i','--iam-profile-name iam_profile_name', 'IAM Profile Name') do |iam_profile_name|
@@ -54,28 +55,41 @@ az_counts = {}
 az_lists = {}
 az_letters = {}
 
-data = profiles.map do |account|
-  regions_json = `aws ec2 describe-regions --output json --profile #{account} --region us-east-1` unless is_iam_instance?(options[:iam_profile_name])
-  regions_json = `aws ec2 describe-regions --output json --region us-east-1` if is_iam_instance?(options[:iam_profile_name])
-  if $?.exitstatus != 0
-    print "Failed to run aws ec2 describe-regions --output json --profile #{account} --region us-east-1"
-    exit 1
-  end
-  regions = JSON.parse(regions_json)['Regions'].map { |d| d['RegionName'] }
-  regions.map do |region|
-    azs_json = `aws ec2 describe-availability-zones --output json --profile #{account} --region #{region}` unless is_iam_instance?(options[:iam_profile_name])
-    azs_json = `aws ec2 describe-availability-zones --output json --region #{region}` if is_iam_instance?(options[:iam_profile_name])
+is_iam_instance = is_iam_instance?(options[:iam_profile_name])
 
-    if $?.exitstatus != 0
-      print "Failed to run aws ec2 describe-availability-zones --output json --profile #{account} --region #{region}"
-      exit 1
-    end
-    JSON.parse(azs_json)['AvailabilityZones'].map do |tuple|
-      tuple[:name] = "#{account}-#{tuple['RegionName']}"
-      tuple[:sortkey] = "#{account}-#{tuple['ZoneName']}"
-      tuple
-    end
-  end.flatten
+data = profiles.map do |account|
+  regions_json = if is_iam_instance
+                   `aws ec2 describe-regions --output json --region us-east-1`
+                 else
+                   `aws ec2 describe-regions --output json --profile #{account} --region us-east-1`
+                 end
+
+  if $?.exitstatus != 0
+    print "Failed to run aws ec2 describe-regions --output json --profile #{account} --region us-east-1\n"
+    []
+  else
+    regions = JSON.parse(regions_json)['Regions'].map { |d| d['RegionName'] }
+
+    regions.map do |region|
+
+      azs_json = if is_iam_instance
+                   `aws ec2 describe-availability-zones --output json --region #{region}`
+                 else
+                   `aws ec2 describe-availability-zones --output json --profile #{account} --region #{region}`
+                 end
+
+      if $?.exitstatus != 0
+        print "Failed to run aws ec2 describe-availability-zones --output json --profile #{account} --region #{region}\n"
+        {}
+      else
+        JSON.parse(azs_json)['AvailabilityZones'].map do |tuple|
+          tuple[:name] = "#{account}-#{tuple['RegionName']}"
+          tuple[:sortkey] = "#{account}-#{tuple['ZoneName']}"
+          tuple
+        end
+      end
+    end.flatten
+  end
 end.flatten.reject { |tuple| tuple['State'] != 'available' }.sort do |a,b|
   a[:sortkey] <=> b[:sortkey]
 end
@@ -102,26 +116,26 @@ end
 az_counts.each_key { |k| az_counts[k] = "#{az_counts[k]}" }
 
 output = {
- "variable" => {
-    "primary_azs" => {
-      "default" => primary_azs
-    },
-    'secondary_azs' => {
-       "default" => secondary_azs
-    },
-    'tertiary_azs' => {
-        "default" => tertiary_azs
-    },
-    'list_all' => {
-        'default' => az_lists
-    },
-    'list_letters' => {
-        'default' => az_letters
-    },
-    'az_counts' => {
-        'default' => az_counts
+    "variable" => {
+        "primary_azs" => {
+            "default" => primary_azs
+        },
+        'secondary_azs' => {
+            "default" => secondary_azs
+        },
+        'tertiary_azs' => {
+            "default" => tertiary_azs
+        },
+        'list_all' => {
+            'default' => az_lists
+        },
+        'list_letters' => {
+            'default' => az_letters
+        },
+        'az_counts' => {
+            'default' => az_counts
+        }
     }
-  }
 }
 
 File.open('variables.tf.json.new', 'w') { |f| f.puts JSON.pretty_generate(output) }
